@@ -1,17 +1,51 @@
 import pyautogui
-from PIL import Image, ImageDraw
+from PIL import ImageDraw
+from typing import List
 import cv2
 import numpy as np
 import time
 import os
+import re
 
-STATIC_DIR = 'static/'
+stepfile_keys = {
+    'CLICK': [],
+    'INPUT': [],
+    'PRESS': [],
+    'SET': [],
+    'START': [],
+    'WAIT4': [],
+}
 
-def open_program(executable_path):
+stored_vars = {
+    'INT': {},
+    'FLOAT': {},
+    'STRING': {},
+    'BOOL': {},
+    'DATAFRAME': {}
+}
+
+class StepCommand:
+    def __init__(self, comm_line: str):
+        pattern = r"'([^']*)'|\"([^\"]*)\"|(\S+)"
+        self.argv = [match.group(0) for match in re.finditer(pattern, comm_line)]
+        self.validate_comm()
+
+    def validate_comm(self):
+        self.comm = self.argv[0]
+
+        if self.comm not in stepfile_keys.keys():
+            raise SyntaxError
+        
+        rules = stepfile_keys[self.comm]
+
+    def __repr__(self):
+        return 
+
+def open_exe(executable_path: str):
     """Opens a program given its executable path."""
     os.startfile(executable_path)
 
-def find_and_click(image_path, confidence=0.9, save_image_path=None):
+def find_and_click(image_path: str, confidence: float=0.9, save_image_path: str=None):
     """Searches for an image on the screen and clicks its position, saving the found area as an image."""
     location = pyautogui.locateOnScreen(image_path, confidence=confidence)
     if location:
@@ -36,9 +70,15 @@ def find_and_click(image_path, confidence=0.9, save_image_path=None):
     print("Image not found.")
     return False
 
-def type_text(text):
+def type_text(text: str):
     """Automatically types text."""
     pyautogui.write(text)
+
+def press_keys(keys: List[str]):
+    if len(keys) == 1:
+        pyautogui.press(keys[-1])
+    elif len(keys) > 1:
+        pyautogui.hotkey(*keys)
 
 def take_screenshot(region=None):
     ss = pyautogui.screenshot(region=region)
@@ -64,23 +104,17 @@ def wait_screen_update(init_screenshot=None, interval=1):
 
         previous_screenshot = current_screenshot
 
-def main():
-    executable_path = r"C:\Ofisegu\IN000001.exe"
-    at_begin = take_screenshot()
+def main_loop(stepsfile_path: str):
 
-    open_program(executable_path)
+    commands: List[StepCommand] = []
 
-    wait_screen_update(init_screenshot=at_begin, interval=1)
+    with open(stepsfile_path, 'r') as file:
+        for line in file:
+            step_command = StepCommand(line.strip())
+            commands.append(step_command)
 
-    # Find image and click
-    if find_and_click(STATIC_DIR + 'REF_START.png'):
-        print("Image found and click performed.")
-    
-    # Automatically enter text
-    type_text("Sample text")
-    
-    # Take screenshots and compare
-    wait_screen_update(interval=1)
+    while True:
+        break
 
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    main_loop('STEPS.txt')
