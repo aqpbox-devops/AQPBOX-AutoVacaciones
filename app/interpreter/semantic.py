@@ -5,8 +5,6 @@ from typing import List
 
 class AutobotCommand:
 
-    EPSILON = 'E'
-
     COMMANDS = {
         'ExecuteBinary': {'expected': ['LiteralString', 'WaitScreenUpdate'], 
                           'return': 'NoneType',
@@ -20,7 +18,7 @@ class AutobotCommand:
         'PressKeys': {'expected': ['StoredKeyname', 'KeynameChain'],
                       'return': 'NoneType',
                       'function': lambda x: x},
-        'KeynameChain': {'expected': ['StoredKeyname|KeynameChain', EPSILON],
+        'KeynameChain': {'expected': ['StoredKeyname|EPSILON', 'KeynameChain'],
                          'return': 'NoneType',
                          'function': lambda x: x},
         'DoWhileOnDataframe': {'expected': ['LiteralString'],
@@ -63,7 +61,13 @@ class AutobotCommand:
                     self.error = f"NotEnoughTokensReceived"
                     return False
                 
+                epsilon_found = False
+                
                 for production in productions:
+                    if production == 'EPSILON':
+                        epsilon_found = True
+                        continue
+
                     if self.token_buffer[0] == production:
                         if is_nonterminal(production):
 
@@ -77,11 +81,12 @@ class AutobotCommand:
                             parsed.append(sub_command)
                         else:
                             parsed.append(self.token_buffer.pop(0))
-                if not parsed:
+                if not parsed and not epsilon_found:
                     self.error = f"ExpectedTokenNotFound"
                     return False
                 
                 self.argv.append(parsed)
+                print(self.argv)
 
             return True
         else:
@@ -93,6 +98,9 @@ class AutobotCommand:
         function_chain: AutobotCommand = None
 
         for arg in self.argv:
+            print(arg)
+            if not arg:
+                break
             for rep in arg:
                 if isinstance(rep, ParserToken):
                     parameters.append(rep.value)
