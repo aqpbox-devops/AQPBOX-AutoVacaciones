@@ -23,21 +23,25 @@ class AutobotCore:
 
         code_read = procedure_status(f"Code read from {self.fn}", self, 'read_file')
 
-        self.lexer = AutobotLexer(self.code)
-        scanned = procedure_status('Code scan', self.lexer, 'tokenize')
+        if code_read:
 
-        TimeCounter().total()
-        if code_read and scanned:
-            stenvmsg(GRN + 'Bot ready!')
+            self.lexer = AutobotLexer(self.code)
+            scanned = procedure_status('Code scan', self.lexer, 'tokenize')
 
-            while not self.lexer.eof():
-                tokens = self.lexer.next_jumpline()
-                command = AutobotCommand(tokens)
-                if not procedure_status(f"Consuming tokens. Left: {YLW}{len(tokens)}{WHT} tokens", command, 'consume'):
+            TimeCounter().total()
+            if code_read and scanned:
+                stenvmsg(GRN + 'Bot ready!')
+
+                while not self.lexer.eof():
+                    tokens = self.lexer.next_jumpline()
+                    command = AutobotCommand(tokens)
+                    consume_status = procedure_status(f"Consuming tokens. Left: {YLW}{len(tokens)}{WHT} tokens", command, 'consume')
+                    if not consume_status:
+                        TimeCounter().total()
+                        break
+                    procedure_status('Processing command', command, 'execute')
                     TimeCounter().total()
-                    break
-                procedure_status('Processing command', command, 'execute')
-                TimeCounter().total()
-        else:
-            stenvmsg(RED + 'Unable to run bot')
+            else:
+                stenvmsg(RED + 'Unable to run bot')
+
         stenvmsg(GRY + 'EOF reached. Shutting down!')

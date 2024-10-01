@@ -7,7 +7,7 @@ CLICK 'Path/to/login_button.png' !1
 PRESS enter
 DO 'Path/to/file.csv'
     CLICK 'Path/to/other_button.jpg' !1.5
-    PRESS ctrl c
+    PRESS [ctrl c]
     INPUT $'Nombres'-<My comment
     in 
     many 

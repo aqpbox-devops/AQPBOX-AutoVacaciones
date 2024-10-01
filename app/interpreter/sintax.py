@@ -23,6 +23,8 @@ class ParserToken:
             self.value = float(value)
         elif id.__contains__('String'):
             self.value = value[1:-1]
+        elif id.__contains__('KeyList'):
+            self.value = [self.Keyword(str(x.strip(' '))) for x in value[1:-1].split(' ')]
         else:
             self.value = self.Keyword(value)
 
@@ -34,7 +36,10 @@ class ParserToken:
         raise NotImplementedError
 
     def __repr__(self) -> str:
-        return f"{CYN}TOKEN{WHT}<{MGT}{self.id}{WHT}[{YLW}{self.line}:{self.col}{WHT}], {MGT}{type(self.value).__name__}{WHT}({self.value})>"
+        return f"{CYN}TOKEN{WHT}<{MGT}{self.id}{WHT}[{YLW}{self.line}:{self.col}{WHT}], {MGT}{type(self.value).__name__}{WHT}({repr(self.value)})>"
+
+    def __str__(self) -> str:
+        return repr(self)
 
 class AutobotLexer:
     def __init__(self, code: str) -> None:
@@ -53,6 +58,7 @@ class AutobotLexer:
         
         chunk = self.tokens[self.pos:self.pos+found_at]
         self.pos = found_at + 1
+        
         return chunk
     
     def eof(self) -> bool:
@@ -70,6 +76,7 @@ class AutobotLexer:
             'LiteralFloat': r'\d+\.\d+',         # Flotantes
             'LiteralInteger': r'\b\d+\b',        # Enteros (evitar puntos decimales)
             'LiteralString': r'\'[^\']*\'',      # Cadenas entre comillas simples
+            'LiteralKeyList': r'\[[^\]]*\]',
             'GetColumnBy': r'\$',              # Token '$'
             'WaitScreenUpdate': r'\!',              # Token '!'
             'StoredKeyname': r'[a-zA-Z_][a-zA-Z0-9_]*',  # Keys

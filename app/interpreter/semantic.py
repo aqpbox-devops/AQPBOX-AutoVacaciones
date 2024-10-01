@@ -15,12 +15,9 @@ class AutobotCommand:
         'WriteText': {'expected': ['LiteralString|GetColumnBy'],
                       'return': 'NoneType',
                       'function': lambda x: x},
-        'PressKeys': {'expected': ['StoredKeyname', 'KeynameChain'],
+        'PressKeys': {'expected': ['StoredKeyname|LiteralKeyList'],
                       'return': 'NoneType',
                       'function': lambda x: x},
-        'KeynameChain': {'expected': ['StoredKeyname|EPSILON', 'KeynameChain'],
-                         'return': 'NoneType',
-                         'function': lambda x: x},
         'DoWhileOnDataframe': {'expected': ['LiteralString'],
                                'return': 'NoneType',
                                'function': lambda x: x},
@@ -38,12 +35,19 @@ class AutobotCommand:
                              'function': lambda x: x}
     }
 
-    def __init__(self, tokens: List[ParserToken]) -> None:
+    def __init__(self, tokens: List[ParserToken], subcommand: bool=False) -> None:
         self.token_buffer = tokens
         self.command = self.token_buffer.pop(0)
-        self.argv: List[List[ParserToken|AutobotCommand]] = []
+        self.argv: List[ParserToken|AutobotCommand] = []
         self.result: ParserToken = None
         self.error = ''
+        self.subcommand = subcommand
+
+    def __repr__(self) -> str:
+        return f"{self.command}.({self.argv})"
+
+    def __str__(self) -> str:
+        return repr(self)
 
     def consume(self) -> bool:
         def is_nonterminal(x):
@@ -61,32 +65,35 @@ class AutobotCommand:
                     self.error = f"NotEnoughTokensReceived"
                     return False
                 
-                epsilon_found = False
-                
                 for production in productions:
-                    if production == 'EPSILON':
-                        epsilon_found = True
-                        continue
 
                     if self.token_buffer[0] == production:
                         if is_nonterminal(production):
 
                             try:
-                                sub_command = AutobotCommand(self.token_buffer)
+                                sub_command = AutobotCommand(self.token_buffer, subcommand=True)
                             except IndexError:
                                 self.error = f"NotEnoughTokensReceived"
                                 return False
                             
-                            procedure_status(f"Sub-command consuming tokens", sub_command, 'consume')
+                            if not procedure_status(f"Sub-command consuming tokens", sub_command, 'consume'):
+                                self.error = f"SubcommandError"
+                                return False
                             parsed.append(sub_command)
                         else:
                             parsed.append(self.token_buffer.pop(0))
-                if not parsed and not epsilon_found:
+
+                        break
+                
+                if not parsed:
                     self.error = f"ExpectedTokenNotFound"
                     return False
                 
-                self.argv.append(parsed)
-                print(self.argv)
+                self.argv += parsed
+
+            if not self.subcommand and len(self.token_buffer) > 0 and self.token_buffer[0].id != 'NEWLINE':
+                self.error = f"Unexpected token {CYN}{self.token_buffer[0].id}{WHT}, left {YLW}{len(self.token_buffer)}{WHT} tokens"
+                return False
 
             return True
         else:
@@ -98,22 +105,18 @@ class AutobotCommand:
         function_chain: AutobotCommand = None
 
         for arg in self.argv:
-            print(arg)
-            if not arg:
-                break
-            for rep in arg:
-                if isinstance(rep, ParserToken):
-                    parameters.append(rep.value)
-                elif isinstance(rep, AutobotCommand):
-                    if self.COMMANDS[rep.command.id]['return'] != 'NoneType':
-                        status = procedure_status(f"Executing sub-command [{CYN}{rep.command.id}{WHT}]", rep, 'execute')
-                        if status:
-                            parameters.append(rep.result)
-                        else:
-                            self.error = f"Required sub-command {RED}{rep.command.value}{WHT} result failed"
-                            return False
+            if isinstance(arg, ParserToken):
+                parameters.append(arg.value)
+            elif isinstance(arg, AutobotCommand):
+                if self.COMMANDS[arg.command.id]['return'] != 'NoneType':
+                    status = procedure_status(f"Executing sub-command [{CYN}{arg.command.id}{WHT}]", arg, 'execute')
+                    if status:
+                        parameters.append(arg.result)
                     else:
-                        function_chain = rep
+                        self.error = f"Required sub-command {RED}{arg.command.value}{WHT} result failed"
+                        return False
+                else:
+                    function_chain = arg
 
         sep = f"{WHT}, {YLW}"
         
