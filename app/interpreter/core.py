@@ -1,6 +1,6 @@
 from mylogger.printer import *
 from interpreter.sintax import AutobotLexer
-from interpreter.semantic import AutobotCommand
+from interpreter.semantic import AutobotCommand, Do2IterDfMann
 import os
 
 class AutobotCore:
@@ -26,14 +26,17 @@ class AutobotCore:
         if code_read:
 
             self.lexer = AutobotLexer(self.code)
+            Do2IterDfMann().set_lexer(self.lexer)
             scanned = procedure_status('Code scan', self.lexer, 'tokenize')
 
             TimeCounter().total()
             if code_read and scanned:
                 stenvmsg(GRN + 'Bot ready!')
 
+                Do2IterDfMann().look4do()
+
                 while not self.lexer.eof():
-                    tokens = self.lexer.next_jumpline()
+                    tokens = self.lexer.next_token_ocurrence('NEWLINE')
                     command = AutobotCommand(tokens)
                     consume_status = procedure_status(f"Consuming tokens. Left: {YLW}{len(tokens)}{WHT} tokens", command, 'consume')
                     if not consume_status:

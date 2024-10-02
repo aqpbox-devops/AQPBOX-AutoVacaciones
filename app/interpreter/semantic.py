@@ -1,38 +1,102 @@
-from interpreter.sintax import ParserToken
+from interpreter.sintax import ParserToken, AutobotLexer
+from mylogger.mydecorators import singleton
 from interpreter.functions import *
 from mylogger.printer import *
 from typing import List
+import pandas as pd 
+
+@singleton
+class Do2IterDfMann:
+    def __init__(self) -> None:
+        self.reset()
+        self.loop_body: List[ParserToken] = []
+        self.last_do = 0
+
+    def eof(self, offset: int=0) -> bool:
+        return (self.current_row_idx + offset) >= len(self.current_df)
+
+    def reset(self) -> None:
+        self.current_df: pd.DataFrame = None
+        self.current_row_idx = 0
+
+    def set_lexer(self, lexer: AutobotLexer) -> None:
+        self.lexer = lexer
+
+    def look4do(self) -> None:
+        try:
+            self.last_do = self.lexer.tokens.index('DoWhileOnDataframe', self.last_do)
+        except ValueError:
+            pass
+
+        self.reset()
+
+    def getcolumn_by(self, col: str | int) -> str:
+        if self.current_dfis is not None:
+            col_idx = col
+
+            if isinstance(col, str):
+                col_idx = self.current_df.get_loc(col)
+
+            cell = self.current_df.iat[self.current_row_idx, col_idx]
+
+            return str(cell)
+        return ''
+
+    def do(self, fn_data: str) -> None:
+        try:
+            if fn_data.endswith('.xlsx'):
+                self.current_df = pd.read_excel(fn_data)
+            elif fn_data.endswith('.csv'):
+                self.current_df = pd.read_csv(fn_data)
+        except FileNotFoundError:
+            stfatal(f"Dataframe {CYN}{fn_data}{WHT} source not found.")
+
+    def iterdf(self, action, n_rows) -> None:
+        if self.current_df is None:
+            return
+
+        if action == 'down':
+            self.current_row_idx += n_rows
+        
+        elif action == 'up':
+            self.current_row_idx -= n_rows
+
+        if not self.eof():
+            self.lexer.set_at(self.last_do + 2)
+        else:
+            self.reset()
+            self.look4do()
 
 class AutobotCommand:
 
     COMMANDS = {
         'ExecuteBinary': {'expected': ['LiteralString', 'WaitScreenUpdate'], 
                           'return': 'NoneType',
-                          'function': lambda x: x},
+                          'function': lambda x: open_exe(x)},
         'LeftClickOnImage': {'expected': ['LiteralString', 'WaitScreenUpdate'],
                              'return': 'NoneType',
-                             'function': lambda x: x},
+                             'function': lambda x: find_and_click(x)},
         'WriteText': {'expected': ['LiteralString|GetColumnBy'],
                       'return': 'NoneType',
-                      'function': lambda x: x},
+                      'function': lambda x: write_text(x)},
         'PressKeys': {'expected': ['StoredKeyname|LiteralKeyList'],
                       'return': 'NoneType',
-                      'function': lambda x: x},
+                      'function': lambda x: press_keys(x)},
         'DoWhileOnDataframe': {'expected': ['LiteralString'],
                                'return': 'NoneType',
-                               'function': lambda x: x},
+                               'function': lambda x: Do2IterDfMann().do(x)},
         'IfImageOnScreenDo': {'expected': ['LiteralString', 'ExecuteBinary|LeftClickOnImage|WriteText|PressKeys'],
-                              'return': 'NoneType',
-                              'function': lambda x: x},
+                              'return': 'bool',
+                              'function': lambda x: find_and_click(x, perform_click=False)},
         'IterateDataframe': {'expected': ['StoredKeyname', 'LiteralInteger'],
                              'return': 'NoneType',
-                             'function': lambda x, y: (x, y)},
+                             'function': lambda x, y: Do2IterDfMann().iterdf(x, y)},
         'GetColumnBy': {'expected': ['LiteralInteger|LiteralString'],
                         'return': 'str',
-                        'function': lambda x: 'STRING DE PRUEBA'},
+                        'function': lambda x: Do2IterDfMann().getcolumn_by(x)},
         'WaitScreenUpdate': {'expected': ['LiteralInteger|LiteralFloat'],
                              'return': 'NoneType',
-                             'function': lambda x: x}
+                             'function': lambda x: wait_screen_update(None, x)}
     }
 
     def __init__(self, tokens: List[ParserToken], subcommand: bool=False) -> None:
@@ -106,7 +170,7 @@ class AutobotCommand:
 
         for arg in self.argv:
             if isinstance(arg, ParserToken):
-                parameters.append(arg.value)
+                parameters.append(arg.get_litval())
             elif isinstance(arg, AutobotCommand):
                 if self.COMMANDS[arg.command.id]['return'] != 'NoneType':
                     status = procedure_status(f"Executing sub-command [{CYN}{arg.command.id}{WHT}]", arg, 'execute')
@@ -123,8 +187,11 @@ class AutobotCommand:
         stprint(f"Command {MGT}{self.command.value}{WHT}({YLW}{sep.join(map(str, parameters))}{WHT}) execution")
         self.result = self.COMMANDS[self.command.id]['function'](*parameters)
         
+        result_t = self.COMMANDS[self.command.id]['return']
+        if result_t == 'bool' and self.result != True:
+            function_chain = None
         if function_chain is not None:
-            status = procedure_status(f"Executing post-command [{CYN}{function_chain.command.id}{WHT}]", function_chain, 'execute')
+            status = procedure_status(f"After getting {self.result}, executing post-command [{CYN}{function_chain.command.id}{WHT}]", function_chain, 'execute')
             
             if status:
                 return True

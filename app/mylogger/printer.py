@@ -17,6 +17,7 @@ class StatusCode:
     Success = GRN+'[ .     OK ]'+WHT+' {} ({})'
     Failed  = RED+'[  FAILED  ]'+WHT+' {} ({})'
     Error   = RED+'[ .  ERROR ]'+WHT+' {}'
+    Fatal   = RED+'[ ---FATAL ]'+WHT+' {}'
     Print   = GRN+'[          ]'+WHT+' {} ({})'
     Debug   = GRN+'[----------]'+WHT+' {} ({})'
     EnvMsg  = GRN+'[==========]'+WHT+' {}'
@@ -28,6 +29,10 @@ def stprint(msg: str) -> None:
 
 def stdebug(msg: str) -> None:
     print(StatusCode.Debug.format(msg, TimeCounter().time()))
+
+def stfatal(msg: str) -> None:
+    print(StatusCode.Fatal.format(msg, TimeCounter().time()))
+    exit(0)
 
 def stenvmsg(msg: str) -> None:
     TimeCounter().reset()

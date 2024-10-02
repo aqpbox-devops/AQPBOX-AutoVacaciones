@@ -1,5 +1,0 @@
-# Configuración para el acceso a Ofiplan
-OfiplanConfig:
-  Ejecutable: "C:\Ofisegu\IN000001.exe"  # Cambia esta ruta según sea necesario
-  Usuario: "BOTAPER"  # Reemplaza con tu nombre de usuario
-  Contraseña: "Ap2r$7hn7750"  # Reemplaza con tu contraseña

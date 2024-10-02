@@ -28,6 +28,13 @@ class ParserToken:
         else:
             self.value = self.Keyword(value)
 
+    def get_litval(self):
+        if isinstance(self.value, list):
+            return [e.value for e in self.value]
+        elif isinstance(self.value, self.Keyword):
+            return self.value.value
+        return self.value
+
     def __eq__(self, other: object):
         if isinstance(other, ParserToken):
             return self.id == other.id
@@ -45,12 +52,11 @@ class AutobotLexer:
     def __init__(self, code: str) -> None:
         self.code = code + '\n'
         self.tokens: List[ParserToken] = []
-        self.current_position = 0
         self.error = ''
 
-    def next_jumpline(self) -> List[ParserToken]:
+    def next_token_ocurrence(self, id: str) -> List[ParserToken]:
         try:
-            found_at = self.tokens.index('NEWLINE', self.pos)
+            found_at = self.tokens.index(id, self.pos)
         except ValueError:
             chunk = self.tokens[self.pos:]
             self.pos = len(self.tokens)
@@ -60,6 +66,12 @@ class AutobotLexer:
         self.pos = found_at + 1
         
         return chunk
+    
+    def set_at(self, idx: int=0) -> None:
+        if self.pos >= 0 and self.pos < len(self.tokens):
+            self.pos = idx
+        else:
+            raise IndexError
     
     def eof(self) -> bool:
         return self.pos >= len(self.tokens)
@@ -88,11 +100,12 @@ class AutobotLexer:
 
         line = 1
         offset = 0
-        while self.current_position < len(self.code):
+        char_pos = 0
+        while char_pos < len(self.code):
             match = None
             for token_type, pattern in patterns.items():
                 regex = re.compile(pattern)
-                match = regex.match(self.code, self.current_position)
+                match = regex.match(self.code, char_pos)
                 if match:
                     text = match.group(0)
                     forward = len(text)
@@ -112,15 +125,16 @@ class AutobotLexer:
                     else:
                         offset += forward
 
-                    self.current_position += forward
+                    char_pos += forward
                     break
 
             if not match:
-                self.error = f"BadToken[at({YLW}{line}:{offset}{WHT}), {MGT}char{WHT}({self.code[self.current_position]})]"
+                self.error = f"BadToken[at({YLW}{line}:{offset}{WHT}), {MGT}char{WHT}({self.code[char_pos]})]"
                 return False
 
         count = len(self.tokens)
         if count > 0:
+            
             self.pos = 0
             stprint(f"Tokens count {count}")
             return True

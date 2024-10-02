@@ -6,16 +6,22 @@ import numpy as np
 import time
 import os
 
+from mylogger.printer import *
+
 def open_exe(executable_path: str):
     """Opens a program given its executable path."""
-    os.startfile(executable_path)
+    try:
+        os.startfile(executable_path)
+    except FileNotFoundError:
+        stfatal(f"Executable {CYN}{executable_path}{WHT} not found.")
 
-def find_and_click(image_path: str, confidence: float=0.9, save_image_path: str=None):
-    """Searches for an image on the screen and clicks its position, saving the found area as an image."""
+def find_image(image_path: str, confidence: float=0.9, save_image_path: str=None):
     location = pyautogui.locateOnScreen(image_path, confidence=confidence)
+    cx, cy = -1, -1
+
     if location:
         cx, cy = pyautogui.center(location)
-        print(f"Found at: ({cx}, {cy})")
+        stprint(f"Found at: [{YLW}{cx}{WHT}, {YLW}{cy}{WHT}]")
 
         if save_image_path is not None:
         
@@ -29,18 +35,33 @@ def find_and_click(image_path: str, confidence: float=0.9, save_image_path: str=
             screenshot.save(save_image_path)
             print(f"Saved found image with red dot to {save_image_path}")
 
-        pyautogui.click(cx, cy)
-        return True
+    return location is not None, cx, cy
+
+def find_and_click(image_path: str, confidence: float=0.9, save_image_path: str=None, perform_click: bool=True):
+    """Searches for an image on the screen and clicks its position, saving the found area as an image."""
+    if not os.path.isfile(image_path):
+        stfatal(f"Image {CYN}{image_path}{WHT} not found.")
+
+    try:
+        found, cx, cy = find_image(image_path, confidence, save_image_path)
+        if found:
+            if perform_click:
+                pyautogui.click(cx, cy)
+            return True
     
-    print("Image not found.")
+    except pyautogui.ImageNotFoundException:
+        if perform_click:
+            stfatal("Image not found on screen.")
     return False
 
-def type_text(text: str):
+def write_text(text: str):
     """Automatically types text."""
     pyautogui.write(text)
 
-def press_keys(keys: List[str]):
-    if len(keys) == 1:
+def press_keys(keys: List[str] | str):
+    if isinstance(keys, str):
+        pyautogui.press(keys)
+    elif len(keys) == 1:
         pyautogui.press(keys[-1])
     elif len(keys) > 1:
         pyautogui.hotkey(*keys)
@@ -52,10 +73,10 @@ def take_screenshot(region=None):
 
 def wait_screen_update(init_screenshot=None, interval=1):
     """Takes screenshots at intervals and compares with the previous one."""
-    if init_screenshot is not None:
-        previous_screenshot = init_screenshot
-
-    previous_screenshot = take_screenshot()
+    previous_screenshot = init_screenshot
+    
+    if init_screenshot is None:
+        previous_screenshot = take_screenshot()
     
     while True:
         time.sleep(interval)
