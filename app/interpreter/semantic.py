@@ -87,7 +87,7 @@ class AutobotCommand:
                                'function': lambda x: Do2IterDfMann().do(x)},
         'IfImageOnScreenDo': {'expected': ['LiteralString', 'ExecuteBinary|LeftClickOnImage|WriteText|PressKeys'],
                               'return': 'bool',
-                              'function': lambda x: find_and_click(x, perform_click=False)},
+                              'function': lambda x: find_and_click(x, n_clicks=0)},
         'IterateDataframe': {'expected': ['StoredKeyname', 'LiteralInteger'],
                              'return': 'NoneType',
                              'function': lambda x, y: Do2IterDfMann().iterdf(x, y)},
