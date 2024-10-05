@@ -36,7 +36,7 @@ jobs:
 
       - name: Build executable with cx_Freeze
         run: |
-          python setup.py build
+          python app/setup.py build
 
       - name: Copy static folder
         run: |
