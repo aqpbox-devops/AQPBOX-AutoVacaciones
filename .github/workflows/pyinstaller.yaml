@@ -36,7 +36,7 @@ jobs:
 
       - name: Build executable with PyInstaller
         run: |
-          pyinstaller --onefile --clean --name babybot app/main.py --add-data "app/interpreter;interpreter" --add-data "app/mylogger;mylogger" --add-data "app/static;static"
+          pyinstaller --onefile --clean --name babybot app/main.py --add-data "app/interpreter;interpreter" --add-data "app/mylogger;mylogger" --add-data "app/static;static" --hidden-import pyautogui
 
       - name: Upload executable
         uses: actions/upload-artifact@v3
