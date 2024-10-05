@@ -31,20 +31,25 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install pyinstaller
+          pip install cx_Freeze
           pip install -r requirements.txt
 
-      - name: Build executable with PyInstaller
+      - name: Build executable with cx_Freeze
         run: |
-          pyinstaller --onefile --windowed --clean --name babybot app/main.py
+          python setup.py build
 
       - name: Copy static folder
         run: |
-          mkdir -p dist/static
-          cp -r app/static/* dist/static/
+          mkdir -p build/static
+          cp -r app/static/* build/static/
 
-      - name: Upload executable
+      - name: Compress to zip
+        run: |
+          cd build
+          zip -r babybot-nancy.zip babybot.exe static/
+
+      - name: Upload zip
         uses: actions/upload-artifact@v3
         with:
           name: babybot-nancy
-          path: dist/
+          path: build/babybot-nancy.zip
