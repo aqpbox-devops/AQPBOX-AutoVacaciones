@@ -20,6 +20,8 @@ def build_executable():
         '--hidden-import', 'numpy',
         '--hidden-import', 'keyboard',
         '--hidden-import', 'pywin32',
+        '--hidden-import', 'getpass',
+        '--hidden-import', 'json'
     ]
 
     try:
