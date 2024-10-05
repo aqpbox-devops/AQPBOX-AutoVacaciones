@@ -1,6 +1,5 @@
 colorama
 winshell
-win32com
 pandas
 pyautogui
 Pillow
