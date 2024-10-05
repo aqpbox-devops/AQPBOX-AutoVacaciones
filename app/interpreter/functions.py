@@ -8,6 +8,7 @@ import json
 import numpy as np
 import time
 import os
+import sys
 
 from mylogger.printer import *
 
@@ -26,7 +27,7 @@ class PyAutoGUI_Stopper:
 
     def check_status(self) -> None:
         if self.stopped:
-            exit(0)
+            sys.exit(0)
 
 @singleton
 class RegisterTracker:

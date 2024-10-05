@@ -1,6 +1,10 @@
 from colorama import Fore as cfo
+from colorama import init
 from mylogger.error_handler import get_error
 from typing import List
+import sys
+
+init()
 
 GRN = cfo.GREEN
 RED = cfo.RED
@@ -32,7 +36,7 @@ def stdebug(msg: str) -> None:
 
 def stfatal(msg: str) -> None:
     print(StatusCode.Fatal.format(msg, TimeCounter().time()))
-    exit(0)
+    sys.exit(0)
 
 def stenvmsg(msg: str) -> None:
     TimeCounter().reset()
