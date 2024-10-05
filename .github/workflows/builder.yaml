@@ -43,13 +43,8 @@ jobs:
           mkdir -p build/static
           cp -r app/static/* build/static/
 
-      - name: Compress to zip
-        run: |
-          cd build
-          zip -r babybot-nancy.zip babybot.exe static/
-
       - name: Upload zip
         uses: actions/upload-artifact@v3
         with:
           name: babybot-nancy
-          path: build/babybot-nancy.zip
+          path: build/
