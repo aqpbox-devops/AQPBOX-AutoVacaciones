@@ -36,13 +36,10 @@ jobs:
 
       - name: Build executable with PyInstaller
         run: |
-          pyinstaller --onefile --windowed --clean --name babybot app/main.py \
-          --add-data "app/static;static" \
-          --add-data "app/interpreter/*.py;." \
-          --add-data "app/mylogger/*.py;."
+          pyinstaller --onefile --clean --name babybot app/main.py --add-data "app/interpreter;interpreter" --add-data "app/mylogger;mylogger" --add-data "app/static;static"
 
       - name: Upload executable
         uses: actions/upload-artifact@v3
         with:
           name: babybot-nancy
-          path: dist/*
+          path: dist/
