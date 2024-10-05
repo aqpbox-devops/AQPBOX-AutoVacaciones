@@ -43,13 +43,8 @@ jobs:
           mkdir -p dist/static
           cp -r app/static/* dist/static/
 
-      - name: Create ZIP file
-        run: |
-          cd dist
-          zip -r ../babybot-nancy.zip babybot.exe static
-
-      - name: Upload ZIP file
+      - name: Upload executable
         uses: actions/upload-artifact@v3
         with:
           name: babybot-nancy
-          path: ../babybot-nancy.zip
+          path: dist/
