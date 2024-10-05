@@ -13,6 +13,54 @@ from mylogger.printer import *
 
 import pandas as pd 
 
+here = os.path.abspath(__file__)
+IMGS = os.path.join(os.path.dirname(os.path.dirname(here)), 'static')
+
+@singleton
+class PyAutoGUI_Stopper:
+    def __init__(self) -> None:
+        self.stopped = False
+
+    def stop(self) -> None:
+        self.stopped = True
+
+    def check_status(self) -> None:
+        if self.stopped:
+            exit(0)
+
+@singleton
+class RegisterTracker:
+    def __init__(self) -> None:
+        self.report = {}
+        self.code = None
+
+    def catch(self, code) -> None:
+        self.code = code
+        self.report[self.code] = {'registered': False, 'msg': 'Error desconocido. por el bot'}
+
+    def keep(self, registered: bool, msg: str) -> None:
+        if self.code is not None and self.code in list(self.report.keys()):
+            self.report[self.code]['registered'] = registered
+            self.report[self.code]['msg'] = msg
+        else:
+            PyAutoGUI_Stopper().stop()
+
+    def to_dataframe(self) -> pd.DataFrame:
+        codes = []
+        status = []
+        msgs = []
+
+        for code, info in self.report.items():
+            codes.append(code)
+            status.append(info['registered'])
+            msgs.append(info['msg'])
+
+        return pd.DataFrame({
+            'Codigo de trabajador': codes,
+            'Registrado': status,
+            'Mensaje de Advertencia': msgs
+        })
+
 @singleton
 class DataFrameIterator:
     def __init__(self) -> None:
@@ -99,6 +147,7 @@ def take_screenshot(region=None):
 
 def wait_screen_update(init_screenshot=None, interval=1):
     """Takes screenshots at intervals and compares with the previous one."""
+    PyAutoGUI_Stopper().check_status()
     if interval > 0:
         previous_screenshot = init_screenshot
         
@@ -118,6 +167,7 @@ def wait_screen_update(init_screenshot=None, interval=1):
             previous_screenshot = current_screenshot
 
 def open_exe(fn_exe: str, wait: float=0):
+    PyAutoGUI_Stopper().check_status()
     """Opens a program given its executable path."""
     try:
         ss_now = take_screenshot()
@@ -127,6 +177,7 @@ def open_exe(fn_exe: str, wait: float=0):
         stfatal(f"Executable {CYN}{fn_exe}{WHT} not found.")
 
 def find_image(fn_img: str, confidence: float=0.99, save_fn_img: str=None):
+    PyAutoGUI_Stopper().check_status()
     location = pyautogui.locateOnScreen(fn_img, confidence=confidence)
     cx, cy = -1, -1
 
@@ -149,11 +200,13 @@ def find_image(fn_img: str, confidence: float=0.99, save_fn_img: str=None):
     return location is not None, cx, cy
 
 def click(x: float, y: float, n_clicks: int=1) -> None:
+    PyAutoGUI_Stopper().check_status()
     for _ in range(n_clicks):
         pyautogui.click(x, y)
 
 def find_and_click(fn_img: str, confidence: float=0.99, save_fn_img: str=None, n_clicks: int=1, wait: float=0, ignore_fatal: bool=False):
     """Searches for an image on the screen and clicks its position, saving the found area as an image."""
+    PyAutoGUI_Stopper().check_status()
     if not os.path.isfile(fn_img):
         stfatal(f"Image {CYN}{fn_img}{WHT} not found.")
 
@@ -171,14 +224,16 @@ def find_and_click(fn_img: str, confidence: float=0.99, save_fn_img: str=None, n
     
     return False
 
-def write_text(text: str, wait: float=0):
+def write_text(text: str, interval: float=0, wait: float=0):
+    PyAutoGUI_Stopper().check_status()
     """Automatically types text."""
     ss_now = take_screenshot()
-    pyautogui.write(text)
+    pyautogui.write(text, interval=interval)
     stprint(f"Writing '{CYN}{text}{WHT}'")
     wait_screen_update(ss_now, interval=wait)
 
 def press_keys(keys: List[str] | str, delay: float=0, wait: float=0):
+    PyAutoGUI_Stopper().check_status()
     if delay > 0:
         time.sleep(delay)
     ss_now = take_screenshot()
@@ -192,13 +247,14 @@ def press_keys(keys: List[str] | str, delay: float=0, wait: float=0):
     wait_screen_update(ss_now, interval=wait)
 
 def load_credentials(fn_json: str) -> Dict[str, str] | None:
+    PyAutoGUI_Stopper().check_status()
     data: Dict[str, str] = {}
 
     def add_data(key: str, val: str):
         if key not in data.keys() or val != '':
             data[key] = val
             
-    overwrite = input(f"{CYN}$> {WHT}Overwrite {CYN}'{fn_json}'{WHT} ({YLW}y{WHT}/n)?: ")
+    overwrite = input(f"{CYN}$> {WHT}Sobreescribir {CYN}'{fn_json}'{WHT} ({YLW}y{WHT}/n)?: ")
 
     if not fn_json.endswith('.json'):
         return None
@@ -208,12 +264,11 @@ def load_credentials(fn_json: str) -> Dict[str, str] | None:
             data = json.load(f)
 
     if overwrite.lower() == 'y':
-        add_data('exe', input('Executable path: '))
-        add_data('imgs', input('Dir to images for reference: '))
-        add_data('xlsxi', input('Path to excel input: '))
-        add_data('xlsxo', input('Path to excel output: '))
-        add_data('username', input('Username: '))
-        add_data('secret', getpass.getpass('Password: '))
+        add_data('shortcut', input('Nombre del acceso directo: '))
+        add_data('xlsxi', input('Ruta al archivo de entrada excel: '))
+        add_data('xlsxo', input('Ruta al archivo de trazabilidad excel: '))
+        add_data('username', input('Usuario: '))
+        add_data('secret', getpass.getpass('Clave: '))
 
         with open(fn_json, 'w') as f:
             json.dump(data, f, indent=1)
@@ -221,6 +276,7 @@ def load_credentials(fn_json: str) -> Dict[str, str] | None:
     return data
 
 def save_dataframe(fn_data: str, df: pd.DataFrame) -> None:
+    PyAutoGUI_Stopper().check_status()
     if fn_data.endswith('.xlsx'):
         df.to_excel(fn_data, index=None)
     elif fn_data.endswith('.csv'):

@@ -13,14 +13,14 @@ BLE = cfo.BLUE
 LMG = cfo.LIGHTMAGENTA_EX
 
 class StatusCode:
-    Running = GRN+'[ RUN      ]'+WHT+' {}'
-    Success = GRN+'[ .     OK ]'+WHT+' {} ({})'
-    Failed  = RED+'[  FAILED  ]'+WHT+' {} ({})'
-    Error   = RED+'[ .  ERROR ]'+WHT+' {}'
-    Fatal   = RED+'[ ---FATAL ]'+WHT+' {}'
-    Print   = GRN+'[          ]'+WHT+' {} ({})'
-    Debug   = GRN+'[----------]'+WHT+' {} ({})'
-    EnvMsg  = GRN+'[==========]'+WHT+' {}'
+    Running = GRN+'[ RUN      ]'+WHT+' {}'+WHT
+    Success = GRN+'[ .     OK ]'+WHT+' {} ({})'+WHT
+    Failed  = RED+'[  FAILED  ]'+WHT+' {} ({})'+WHT
+    Error   = RED+'[ .  ERROR ]'+WHT+' {}'+WHT
+    Fatal   = RED+'[ ---FATAL ]'+WHT+' {}'+WHT
+    Print   = GRN+'[          ]'+WHT+' {} ({})'+WHT
+    Debug   = GRN+'[----------]'+WHT+' {} ({})'+WHT
+    EnvMsg  = GRN+'[==========]'+WHT+' {}'+WHT
 
 from mylogger.timer import TimeCounter
 

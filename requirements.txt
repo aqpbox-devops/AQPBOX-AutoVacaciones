@@ -1,0 +1,9 @@
+colorama
+winshell
+win32com
+pandas
+pyautogui
+Pillow
+opencv-python
+keyboard
+numpy
