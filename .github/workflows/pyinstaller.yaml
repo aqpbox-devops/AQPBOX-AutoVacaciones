@@ -1,0 +1,48 @@
+name: Vacations Bot as executable
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          pip install pyinstaller
+          pip install -r requirements.txt
+
+      - name: Build executable with PyInstaller
+        run: |
+          pyinstaller --onefile --windowed --clean --name babybot app/main.py \
+          --add-data "app/static;static" \
+          --add-data "app/interpreter/*.py;." \
+          --add-data "app/mylogger/*.py;."
+
+      - name: Upload executable
+        uses: actions/upload-artifact@v3
+        with:
+          name: babybot-nancy
+          path: dist/*
