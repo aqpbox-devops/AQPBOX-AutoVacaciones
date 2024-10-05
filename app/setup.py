@@ -18,7 +18,8 @@ def build_executable():
         '--hidden-import', 'Pillow',
         '--hidden-import', 'pandas',
         '--hidden-import', 'numpy',
-        '--hidden-import', 'pandas',
+        '--hidden-import', 'keyboard',
+        '--hidden-import', 'pywin32',
     ]
 
     try:
