@@ -39,8 +39,6 @@ jobs:
           tag_name: v${{ github.run_number }}
           release_name: Release v${{ github.run_number }}
           body: 'Release automático del ejecutable.'
-        env:
-          GITHUB_TOKEN: ${{ secrets.MY_PAT }}  # Usa tu PAT aquí
 
       - name: Upload executable to Release
         uses: softprops/action-gh-release@v1
