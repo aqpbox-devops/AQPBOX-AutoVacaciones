@@ -4,11 +4,11 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
   release:
-    types: [created]
-
-permissions:
-  contents: write
+    types: [created]  # Opcional, si deseas crear releases manualmente
 
 jobs:
   build:
@@ -23,6 +23,14 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
       - name: Install dependencies
         run: |
           pip install pyinstaller
@@ -36,14 +44,14 @@ jobs:
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ github.run_number }}
+          tag_name: v${{ github.run_number }}  # Usa el número de ejecución como etiqueta
           release_name: Release v${{ github.run_number }}
           body: 'Release automático del ejecutable.'
-
+          
       - name: Upload executable to Release
         uses: softprops/action-gh-release@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: dist/babybot-nancy.exe
-          asset_name: babybot-nancy.exe
-          asset_content_type: application/octet-stream
+          asset_path: dist/babybot-nancy.exe  # Ruta al ejecutable generado
+          asset_name: babybot-nancy.exe  # Nombre del archivo en el release
+          asset_content_type: application/octet-stream  # Tipo de contenido del archivo
