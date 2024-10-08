@@ -19,14 +19,17 @@ WARNINGS = {'MSG_CRUR.png': {'msg': 'El rango de fechas elegido cruza con otro r
             'MSG_FMAI.png': {'msg': 'Fecha de aprobacion es mayor a la fecha de inicio.', 
                              'error': True}, 
             'MSG_MCDD.png': {'msg': 'Se excede los dias parametrizados al trabajador', 
+                             'error': True},
+            'MSG_MFDI.png': {'msg': 'Ya existe un registro con la misma fecha de inicio.',
                              'error': True}}
 
-def wait_for_error(wait_for: List[str]=None, delay=0.2):
+def wait_for_error(wait_for: List[str]=None, delay=0.5):
     if wait_for is None:
         wait_for = list(WARNINGS.keys())
 
     time.sleep(delay)
     err_img_path = bot.dirjoin(IMGS, 'MSG_ERRO.png')
+    error = False
 
     if bot.find_and_click(err_img_path, n_clicks=0, ignore_fatal=True):
 
@@ -41,12 +44,10 @@ def wait_for_error(wait_for: List[str]=None, delay=0.2):
 
                 stprint(f"Employee {CYN}{RegisterTracker().code}{WHT} saved with '{RED}{msg}{WHT}' message")
 
-                while bot.find_and_click(err_img_path, n_clicks=0, ignore_fatal=True):
-                    bot.press_keys('enter')
+        while bot.find_and_click(err_img_path, n_clicks=0, ignore_fatal=True):
+            bot.press_keys('enter', wait=0.1)
 
-                if error:
-                   return True
-    return False
+    return error
 
 def stop_script():
     stenvmsg("Listening for stop command (Esc)...")
@@ -70,7 +71,7 @@ if __name__ == '__main__':
         stfatal(f"No se encontró el executable para {MGT}{auth['shortcut']}{WHT}.")
 
     stenvmsg(f"Running {CYN}{auth['shortcut']}{WHT} at {MGT}{exe_path}{WHT}")
-    bot.open_exe(exe_path, wait=1.2)
+    bot.open_exe(exe_path, wait=3)
     TimeCounter().total()
 
     while True:
@@ -86,75 +87,102 @@ if __name__ == '__main__':
 
     bot.find_and_click(bot.dirjoin(IMGS, 'BTN_SIST.png'))
     bot.find_and_click(bot.dirjoin(IMGS, 'BTN_RRHH.png'))
-    bot.find_and_click(bot.dirjoin(IMGS, 'BTN_VACA.png'))
+    bot.find_and_click(bot.dirjoin(IMGS, 'BTN_VACA.png'), wait=0.1)
 
 
-    if bot.find_and_click(bot.dirjoin(IMGS, 'ASK_OPEN.png'), n_clicks=0):
-        TimeCounter().total()
-        stenvmsg('On main vacations screen.')
-        bot.press_keys('space')
-        bot.press_keys('enter')
-        bot.press_keys('enter')
-        bot.press_keys('enter', wait=1.5)
+    TimeCounter().total()
+    stenvmsg('On main vacations screen.')
+    bot.press_keys('space')
+    bot.press_keys('enter')
+    bot.press_keys('enter')
+    bot.press_keys('enter')
+    bot.press_keys('enter')
 
-        bot.find_and_click(bot.dirjoin(IMGS, 'BTN_MANN.png'))
-        bot.find_and_click(bot.dirjoin(IMGS, 'BTN_CMAC.png'))
-        bot.find_and_click(bot.dirjoin(IMGS, 'BTN_INGR.png'), n_clicks=2, wait=1.5)
-        bot.DataFrameIterator().load_from_file(auth['xlsxi'])
-        found, x, y = bot.find_image(bot.dirjoin(IMGS, 'PLH_TRAB.png'))
-        
-        TimeCounter().total()
-        stenvmsg('On vacations inputer screen.')
-        if found:
-            while bot.DataFrameIterator().next_row():
-                RegisterTracker().catch(bot.DataFrameIterator().get_by_letter('A'))
-                stdebug(f"Inserting employee {YLW}#{RegisterTracker().code}{WHT}.")
-                bot.click(x, y, n_clicks=2)
-                bot.press_keys('del')
-                bot.write_text(RegisterTracker().code)#CODIGO DE TRABAJADOR
-                bot.press_keys('tab')
-                bot.write_text(bot.DataFrameIterator().get_by_letter('B'))#PERIODO VACACIONAL
-                bot.press_keys('tab')
-                bot.press_keys('tab')
-                bot.write_text(bot.DataFrameIterator().get_by_letter('C'))#TIPO VAC
-                bot.press_keys('tab')
-                bot.write_text(bot.DataFrameIterator().get_by_letter('D'))#FECHA INICIAL
-                bot.press_keys('tab')
-                bot.write_text(bot.DataFrameIterator().get_by_letter('E'))#No DIAS
-                bot.press_keys('tab')
+    time.sleep(1)
 
-                if wait_for_error(['MSG_CRUR.png', 'MSG_LT1Y.png']):
-                    continue
-                
-                bot.write_text(bot.DataFrameIterator().get_by_letter('F'))#AÑO
-                bot.press_keys('tab')
-                bot.write_text(bot.DataFrameIterator().get_by_letter('G'))#PERIODO
-                bot.press_keys('tab')
-                bot.write_text(bot.DataFrameIterator().get_by_letter('H'))#CORRELATIVO
-                bot.press_keys('tab')
-                bot.write_text(bot.DataFrameIterator().get_by_letter('I'))#REEMPLAZO
-                bot.press_keys('tab')
+    bot.find_and_click(bot.dirjoin(IMGS, 'BTN_MANN.png'))
+    bot.find_and_click(bot.dirjoin(IMGS, 'BTN_CMAC.png'))
+    bot.find_and_click(bot.dirjoin(IMGS, 'BTN_INGR.png'), n_clicks=2, wait=1.5)
+    bot.DataFrameIterator().load_from_file(auth['xlsxi'])
+    found, x, y = bot.find_image(bot.dirjoin(IMGS, 'PLH_TRAB.png'))
+    
+    TimeCounter().total()
+    stenvmsg('On vacations inputer screen.')
+    if found:
+        while bot.DataFrameIterator().next_row():
+            RegisterTracker().catch(bot.DataFrameIterator().get_by_letter('A'))
+            stdebug(f"Inserting employee {YLW}#{RegisterTracker().code}{WHT}.")
+            bot.click(x, y, n_clicks=2)
+            bot.press_keys('del')
+            bot.write_text(RegisterTracker().code)#CODIGO DE TRABAJADOR
+            bot.press_keys('tab')
+            bot.write_text(bot.DataFrameIterator().get_by_letter('B'))#PERIODO VACACIONAL
+            bot.press_keys('tab')
+            if wait_for_error():
+                continue
+            bot.press_keys('tab')
+            bot.write_text(bot.DataFrameIterator().get_by_letter('C'))#TIPO VAC
+            bot.press_keys('tab')
 
-                if wait_for_error(['MSG_TRNM.png']):
-                    continue
+            if wait_for_error():
+                continue
+            bot.write_text(bot.DataFrameIterator().get_by_letter('D'))#FECHA INICIAL
+            bot.press_keys('tab')
 
-                bot.write_text(bot.DataFrameIterator().get_by_letter('J'))#AUTORIZA
-                bot.press_keys('tab')
-                bot.write_text(bot.DataFrameIterator().get_by_letter('D'))#FECHA INICIAL X2
-                bot.press_keys('tab')
+            if wait_for_error():
+                continue
 
-                if wait_for_error(['MSG_FMAI.png']):
-                    continue
+            bot.write_text(bot.DataFrameIterator().get_by_letter('E'))#No DIAS
+            bot.press_keys('tab')
 
-                bot.write_text(bot.DataFrameIterator().get_by_letter('K'))# OBSERVACION
-                TimeCounter().total()
-                if wait_for_error(['MSG_CRUL.png', 'MSG_MCDD.png']):
-                    continue
-
-                elif bot.find_and_click(bot.dirjoin(IMGS, 'BTN_SAVE.png'), wait=0.3, ignore_fatal=True):
-                    bot.press_keys('enter')
-                    #bot.find_and_click(bot.dirjoin(IMGS, 'BTN_ISOK.png'), wait=0.2)
-            stenvmsg('On report generation.')
-            bot.save_dataframe(auth['xlsxo'], RegisterTracker().to_dataframe())
+            if wait_for_error():
+                continue
             
-        TimeCounter().total()
+            bot.write_text(bot.DataFrameIterator().get_by_letter('F'))#AÑO
+            bot.press_keys('tab')
+
+            if wait_for_error():
+                continue
+
+            bot.write_text(bot.DataFrameIterator().get_by_letter('G'))#PERIODO
+            bot.press_keys('tab')
+
+            if wait_for_error():
+                continue
+
+            bot.write_text(bot.DataFrameIterator().get_by_letter('H'))#CORRELATIVO
+            bot.press_keys('tab')
+
+            if wait_for_error():
+                continue
+
+            bot.write_text(bot.DataFrameIterator().get_by_letter('I'))#REEMPLAZO
+            bot.press_keys('tab')
+
+            if wait_for_error():
+                continue
+
+            bot.write_text(bot.DataFrameIterator().get_by_letter('J'))#AUTORIZA
+            bot.press_keys('tab')
+
+            if wait_for_error():
+                continue
+
+            bot.write_text(bot.DataFrameIterator().get_by_letter('D'))#FECHA INICIAL X2
+            bot.press_keys('tab')
+
+            if wait_for_error():
+                continue
+
+            bot.write_text(bot.DataFrameIterator().get_by_letter('K'))# OBSERVACION
+            TimeCounter().total()
+            if wait_for_error():
+                continue
+
+            elif bot.find_and_click(bot.dirjoin(IMGS, 'BTN_SAVE.png'), wait=0.3, ignore_fatal=True):
+                bot.press_keys('enter')
+                #bot.find_and_click(bot.dirjoin(IMGS, 'BTN_ISOK.png'), wait=0.2)
+        stenvmsg('On report generation.')
+        bot.save_dataframe(auth['xlsxo'], RegisterTracker().to_dataframe())
+        
+    TimeCounter().total()
