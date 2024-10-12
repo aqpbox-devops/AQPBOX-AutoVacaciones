@@ -21,9 +21,17 @@ WARNINGS = {'MSG_CRUR.png': {'msg': 'El rango de fechas elegido cruza con otro r
             'MSG_MCDD.png': {'msg': 'Se excede los dias parametrizados al trabajador', 
                              'error': True},
             'MSG_MFDI.png': {'msg': 'Ya existe un registro con la misma fecha de inicio.',
-                             'error': True}}
+                             'error': True},
+            'MSG_RXVF.png': {'msg': 'Cruce de rango de fechas (Se encuentra activo el Registro Automático de Vacaciones Físicas).',
+                             'error': True},
+            'MSG_SASU.png': {'msg': 'Considerar Sabado y Domingo para completar el bloque de dias fraccionados.',
+                             'error': False},
+            'MSG_LTDF.png': {'msg': 'Llego al tope de dias fraccionados. Que salga de vacaciones de manera continua.',
+                             'error': False},
+            'MSG_SDFM.png': {'msg': 'El saldo de dias fraccionados es menor a los que solicita.',
+                             'error': False},}
 
-def wait_for_error(wait_for: List[str]=None, delay=0.5):
+def wait_for_error(wait_for: List[str]=None, delay=0.2):
     if wait_for is None:
         wait_for = list(WARNINGS.keys())
 
@@ -76,9 +84,9 @@ if __name__ == '__main__':
 
     while True:
         bot.find_and_click(bot.dirjoin(IMGS, 'BTN_CONN.png'))
-        bot.write_text(auth['username'], interval=0.1)
+        bot.write_text(auth['username'], interval=0.05)
         bot.press_keys('tab', delay=0.2)
-        bot.write_text(auth['secret'], interval=0.1)
+        bot.write_text(auth['secret'], interval=0.05)
         bot.press_keys('enter', delay=0.4)
         bot.press_keys('enter', delay=0.1, wait=1.5)
         if not bot.find_and_click(bot.dirjoin(IMGS, 'ALR_INVA.png'), n_clicks=0, ignore_fatal=True):
@@ -135,7 +143,7 @@ if __name__ == '__main__':
             bot.write_text(bot.DataFrameIterator().get_by_letter('E'))#No DIAS
             bot.press_keys('tab')
 
-            if wait_for_error():
+            if wait_for_error(['MSG_LTDF.png', 'MSG_SASU.png', 'MSG_SFDM.png']):
                 continue
             
             bot.write_text(bot.DataFrameIterator().get_by_letter('F'))#AÑO
@@ -176,7 +184,7 @@ if __name__ == '__main__':
 
             bot.write_text(bot.DataFrameIterator().get_by_letter('K'))# OBSERVACION
             TimeCounter().total()
-            if wait_for_error():
+            if wait_for_error(['MSG_RXVF.png']):
                 continue
 
             elif bot.find_and_click(bot.dirjoin(IMGS, 'BTN_SAVE.png'), wait=0.3, ignore_fatal=True):
