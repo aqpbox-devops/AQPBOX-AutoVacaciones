@@ -82,7 +82,7 @@ if __name__ == '__main__':
     bot.open_exe(exe_path, wait=3)
     TimeCounter().total()
 
-    keyboard.wait('f1')
+    """keyboard.wait('f1')
     time.sleep(3)
     stenvmsg('Now its my turn')
     """
@@ -115,7 +115,7 @@ if __name__ == '__main__':
 
     bot.find_and_click(bot.dirjoin(IMGS, 'BTN_MANN.png'))
     bot.find_and_click(bot.dirjoin(IMGS, 'BTN_CMAC.png'))
-    bot.find_and_click(bot.dirjoin(IMGS, 'BTN_INGR.png'), n_clicks=2, wait=1.5)"""
+    bot.find_and_click(bot.dirjoin(IMGS, 'BTN_INGR.png'), n_clicks=2, wait=1.5)
     bot.DataFrameIterator().load_from_file(auth['xlsxi'])
     found, x, y = bot.find_image(bot.dirjoin(IMGS, 'PLH_TRAB.png'))
     

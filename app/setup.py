@@ -10,7 +10,7 @@ def build_executable():
         'app/main.py',
         '--add-data', 'app/interpreter;interpreter',
         '--add-data', 'app/mylogger;mylogger',
-        '--add-data', 'app/static;static',
+        #'--add-data', 'app/static;static',
         '--hidden-import', 'pyautogui',
         '--hidden-import', 'colorama',
         '--hidden-import', 'winshell',

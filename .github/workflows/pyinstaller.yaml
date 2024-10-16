@@ -38,8 +38,20 @@ jobs:
         run: |
           python app/setup.py
 
-      - name: Upload executable
-        uses: actions/upload-artifact@v3
+      - name: Create directory for artifact
+        run: |
+          mkdir babybot
+          cp dist/babybot.exe babybot/
+          cp -r app/static babybot/
+
+      - name: Print folder tree of ZIP contents
+        uses: jaywcjlove/github-action-folder-tree@main
+        with:
+          path: babybot
+          depth: 3
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
           name: babybot-nancy
-          path: dist/
+          path: babybot/
