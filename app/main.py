@@ -108,7 +108,7 @@ if __name__ == '__main__':
     TimeCounter().total()
     stenvmsg('On main vacations screen.')
 
-    keyboard.wait('ctrl')
+    time.sleep(20.01)
 
     bot.press_keys('space')
     bot.press_keys('enter')
