@@ -55,6 +55,8 @@ def wait_for_error(wait_for: List[str]=None, delay=0.2):
         while bot.find_and_click(err_img_path, n_clicks=0, ignore_fatal=True):
             bot.press_keys('enter', wait=0.1)
 
+    time.sleep(5.0)
+
     return error
 
 def stop_script():
