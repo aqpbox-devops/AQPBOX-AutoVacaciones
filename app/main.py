@@ -87,6 +87,8 @@ if __name__ == '__main__':
     stenvmsg('Now its my turn')
     """
 
+    IMGS = auth['imgs']
+
     while True:
         bot.find_and_click(bot.dirjoin(IMGS, 'BTN_CONN.png'))
         bot.write_text(auth['username'], interval=0.05)

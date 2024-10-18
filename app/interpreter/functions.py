@@ -14,7 +14,7 @@ from mylogger.printer import *
 
 import pandas as pd 
 
-here = os.path.abspath(__file__)
+here = os.path.dirname(__file__)
 IMGS = os.path.join(os.path.dirname(os.path.dirname(here)), 'static')
 
 @singleton
@@ -266,6 +266,7 @@ def load_credentials(fn_json: str) -> Dict[str, str] | None:
 
     if overwrite.lower() == 'y':
         add_data('shortcut', input('Nombre del acceso directo: '))
+        add_data('imgs', input('Ruta a las imagenes: '))
         add_data('xlsxi', input('Ruta al archivo de entrada excel: '))
         add_data('xlsxo', input('Ruta al archivo de trazabilidad excel: '))
         add_data('username', input('Usuario: '))
@@ -293,6 +294,3 @@ def dirjoin(dir: str, fn: str) -> str:
     elif dir.__contains__('\\') and not dir.endswith('\\'):
         slash_join = '\\'
     return dir + slash_join + fn
-
-if __name__ == "__main__":
-    pass
