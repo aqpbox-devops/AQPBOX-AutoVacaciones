@@ -4,6 +4,7 @@ pandas
 pyautogui
 Pillow
 opencv-python
+openpyxl
 keyboard
 numpy
 pywin32
