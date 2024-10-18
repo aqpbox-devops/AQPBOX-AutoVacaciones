@@ -15,6 +15,7 @@ def build_executable():
         '--hidden-import', 'colorama',
         '--hidden-import', 'winshell',
         '--hidden-import', 'opencv-python',
+        '--hidden-import', 'openpyxl',
         '--hidden-import', 'Pillow',
         '--hidden-import', 'pandas',
         '--hidden-import', 'numpy',
